@@ -283,7 +283,7 @@ void initialise()
         { 0, 1, 2, 3 }
     };
 
-    glm::vec3 g_gravity = glm::vec3(0.0f,-0.45f, 0.0f);
+    glm::vec3 g_gravity = glm::vec3(0.0f,-0.9f, 0.0f);
 
     g_state.player = new Entity(
         player_texture_id,         // texture id
