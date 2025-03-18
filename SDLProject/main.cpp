@@ -344,9 +344,9 @@ void process_input()
             }
             else{
                 glm::vec3 current_velocity = g_state.player->get_velocity();
-                float new_velocity_x = current_velocity.x * 0.9f;  // Slow down velocity
+                float new_velocity_x = current_velocity.x * 0.9f;
                 current_velocity.x=new_velocity_x;
-                g_state.player->set_velocity(current_velocity);  // Update the velocity
+                g_state.player->set_velocity(current_velocity);
             }
         }
     }
