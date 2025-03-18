@@ -21,7 +21,6 @@
 
 #include <SDL.h>
 #include <SDL_opengl.h>
-#include <SDL_mixer.h>
 #include "glm/mat4x4.hpp"
 #include "glm/gtc/matrix_transform.hpp"
 #include "ShaderProgram.h"
@@ -67,16 +66,9 @@ constexpr int NUMBER_OF_TEXTURES = 1;
 constexpr GLint LEVEL_OF_DETAIL  = 0;
 constexpr GLint TEXTURE_BORDER   = 0;
 
-
-constexpr int PLAY_ONCE = 0,    // play once, loop never
-          NEXT_CHNL = -1,   // next available channel
-          ALL_SFX_CHNL = -1;
-
 glm::vec3 g_velocity = glm::vec3(0.0f, 0.0f, 0.0f);
 glm::vec3 g_gravity = glm::vec3(0.0f, -0.45f, 0.0f);
 
-Mix_Music *g_music;
-Mix_Chunk *g_jump_sfx;
 
 // ––––– GLOBAL VARIABLES ––––– //
 GameState g_state;
@@ -95,31 +87,26 @@ GLuint font_texture_id;
 
 bool win = false;
 bool lose = false;
+float timer = 0.0f;
 void draw_text(ShaderProgram *program, GLuint font_texture_id, std::string text,
                float font_size, float spacing, glm::vec3 position)
 {
-    // Scale the size of the fontbank in the UV-plane
-    // We will use this for spacing and positioning
+
     float width = 1.0f / FONTBANK_SIZE;
     float height = 1.0f / FONTBANK_SIZE;
 
-    // Instead of having a single pair of arrays, we'll have a series of pairs—one for
-    // each character. Don't forget to include <vector>!
+
     std::vector<float> vertices;
     std::vector<float> texture_coordinates;
 
-    // For every character...
     for (int i = 0; i < text.size(); i++) {
-        // 1. Get their index in the spritesheet, as well as their offset (i.e. their
-        //    position relative to the whole sentence)
-        int spritesheet_index = (int) text[i];  // ascii value of character
+
+        int spritesheet_index = (int) text[i];
         float offset = (font_size + spacing) * i;
         
-        // 2. Using the spritesheet index, we can calculate our U- and V-coordinates
         float u_coordinate = (float) (spritesheet_index % FONTBANK_SIZE) / FONTBANK_SIZE;
         float v_coordinate = (float) (spritesheet_index / FONTBANK_SIZE) / FONTBANK_SIZE;
 
-        // 3. Inset the current pair in both vectors
         vertices.insert(vertices.end(), {
             offset + (-0.5f * font_size), 0.5f * font_size,
             offset + (-0.5f * font_size), -0.5f * font_size,
@@ -139,7 +126,6 @@ void draw_text(ShaderProgram *program, GLuint font_texture_id, std::string text,
         });
     }
 
-    // 4. And render all of them using the pairs
     glm::mat4 model_matrix = glm::mat4(1.0f);
     model_matrix = glm::translate(model_matrix, position);
     
@@ -224,24 +210,6 @@ void initialise()
     glUseProgram(g_program.get_program_id());
 
     glClearColor(BG_RED, BG_BLUE, BG_GREEN, BG_OPACITY);
-
-//    // ––––– BGM ––––– //
-//    Mix_OpenAudio(CD_QUAL_FREQ, MIX_DEFAULT_FORMAT, AUDIO_CHAN_AMT, AUDIO_BUFF_SIZE);
-//
-//    // STEP 1: Have openGL generate a pointer to your music file
-//    g_music = Mix_LoadMUS(BGM_FILEPATH); // works only with mp3 files
-//
-//    // STEP 2: Play music
-//    Mix_PlayMusic(
-//                  g_music,  // music file
-//                  -1        // -1 means loop forever; 0 means play once, look never
-//                  );
-//
-//    // STEP 3: Set initial volume
-//    Mix_VolumeMusic(MIX_MAX_VOLUME / 2.0);
-//
-//    // ––––– SFX ––––– //
-//    g_jump_sfx = Mix_LoadWAV(SFX_FILEPATH);
 
     // ––––– PLATFORMS ––––– //
     GLuint platform_texture_id_1 = load_texture(PLATFORM_FILEPATH);
@@ -335,23 +303,6 @@ void process_input()
                         g_game_is_running = false;
                         break;
 
-                    case SDLK_SPACE:
-                        // Jump
-                        if (g_state.player->get_collided_bottom())
-                        {
-                            g_state.player->jump();
-                            Mix_PlayChannel(NEXT_CHNL, g_jump_sfx, 0);
-                        }
-                        break;
-
-                    case SDLK_h:
-                        // Stop music
-                        Mix_HaltMusic();
-                        break;
-
-                    case SDLK_p:
-                        Mix_PlayMusic(g_music, -1);
-
                     default:
                         break;
                 }
@@ -403,6 +354,15 @@ void process_input()
     if (glm::length(g_state.player->get_movement()) > 1.0f)
     {
         g_state.player->normalise_movement();
+    }
+    
+
+    if (win==true||lose==true){
+        timer += 1.0f;
+        if (timer > 30.0f){
+            SDL_Quit();
+            exit(1);
+        }
     }
 }
 
