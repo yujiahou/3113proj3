@@ -73,7 +73,7 @@ constexpr int PLAY_ONCE = 0,    // play once, loop never
           ALL_SFX_CHNL = -1;
 
 glm::vec3 g_velocity = glm::vec3(0.0f, 0.0f, 0.0f);
-glm::vec3 g_gravity = glm::vec3(0.0f, -0.9f, 0.0f);
+glm::vec3 g_gravity = glm::vec3(0.0f, -0.45f, 0.0f);
 
 Mix_Music *g_music;
 Mix_Chunk *g_jump_sfx;
@@ -263,7 +263,7 @@ void initialise()
         else if (i==11){
             g_state.platforms[i].set_texture_id(platform_texture_id_2);
             g_state.platforms[i].set_position(glm::vec3(i - PLATFORM_COUNT / 2.0f, -3.0f, 0.0f));
-            g_state.platforms[i].set_velocity(glm::vec3(-2.0f, 0.0f, 0.0f));
+            g_state.platforms[i].set_velocity(glm::vec3(3.0f, 0.0f, 0.0f));
             LOG(g_state.platforms[i].get_velocity().x);
             g_state.platforms[i].set_width(0.8f);
             g_state.platforms[i].set_height(1.0f);
@@ -272,7 +272,7 @@ void initialise()
         }
     }
 
-    g_state.platforms[11].set_velocity(glm::vec3(2.0f, 0.0f, 0.0f));
+    g_state.platforms[11].set_velocity(glm::vec3(3.0f, 0.0f, 0.0f));
     GLuint player_texture_id = load_texture(SPRITESHEET_FILEPATH);
 
     int player_walking_animation[4][4] =
@@ -283,7 +283,7 @@ void initialise()
         { 0, 1, 2, 3 }
     };
 
-    glm::vec3 g_gravity = glm::vec3(0.0f,-0.9f, 0.0f);
+    glm::vec3 g_gravity = glm::vec3(0.0f,-0.45f, 0.0f);
 
     g_state.player = new Entity(
         player_texture_id,         // texture id
@@ -367,7 +367,9 @@ void process_input()
         if (key_state[SDL_SCANCODE_LEFT])
         {
             g_state.player->move_left();
-            glm::vec3 acceleration = glm::vec3(-2.0f, 0.0f, 0.0f);
+            glm::vec3 acceleration = g_state.player->get_acceleration();
+            float new_acceleration_x = g_state.player->get_acceleration().x -1.0f;
+            acceleration.x = new_acceleration_x;
             g_state.player->set_acceleration(acceleration);
             float curr_fuel = g_state.player->get_fuel();
             curr_fuel -= 1.0f;
@@ -376,7 +378,9 @@ void process_input()
         else if (key_state[SDL_SCANCODE_RIGHT])
         {
             g_state.player->move_right();
-            glm::vec3 acceleration = glm::vec3(2.0f, 0.0f, 0.0f);
+            glm::vec3 acceleration = g_state.player->get_acceleration();
+            float new_acceleration_x = g_state.player->get_acceleration().x + 1.0f;
+            acceleration.x = new_acceleration_x;
             g_state.player->set_acceleration(acceleration);
             float curr_fuel = g_state.player->get_fuel();
             curr_fuel -= 1.0f;
