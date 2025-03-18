@@ -88,6 +88,9 @@ GLuint font_texture_id;
 bool win = false;
 bool lose = false;
 float timer = 0.0f;
+
+bool left = false;
+bool right = false;
 void draw_text(ShaderProgram *program, GLuint font_texture_id, std::string text,
                float font_size, float spacing, glm::vec3 position)
 {
@@ -256,7 +259,7 @@ void initialise()
     g_state.player = new Entity(
         player_texture_id,         // texture id
         2.0f,                      // speed
-        500.0f,                      // fuel
+        50.0f,                      // fuel
         g_gravity,              // acceleration
         3.0f,                      // jumping power
         player_walking_animation,  // animation index sets
@@ -270,7 +273,7 @@ void initialise()
         PLAYER
     );
     
-    g_state.player->set_fuel(500.0f);
+    g_state.player->set_fuel(50.0f);
 
 
     // Jumping
@@ -318,37 +321,18 @@ void process_input()
         if (key_state[SDL_SCANCODE_LEFT])
         {
             g_state.player->move_left();
-            glm::vec3 acceleration = g_state.player->get_acceleration();
-            float new_acceleration_x = g_state.player->get_acceleration().x -1.0f;
-            acceleration.x = new_acceleration_x;
-            g_state.player->set_acceleration(acceleration);
-            float curr_fuel = g_state.player->get_fuel();
-            curr_fuel -= 1.0f;
-            g_state.player->set_fuel(curr_fuel);
+            left=true;
+            right=false;
         }
         else if (key_state[SDL_SCANCODE_RIGHT])
         {
             g_state.player->move_right();
-            glm::vec3 acceleration = g_state.player->get_acceleration();
-            float new_acceleration_x = g_state.player->get_acceleration().x + 1.0f;
-            acceleration.x = new_acceleration_x;
-            g_state.player->set_acceleration(acceleration);
-            float curr_fuel = g_state.player->get_fuel();
-            curr_fuel -= 1.0f;
-            g_state.player->set_fuel(curr_fuel);
+            right=true;
+            left=false;
         }
-        else{
-            if (win==true || lose == true){
-                g_state.player->set_velocity(glm::vec3(0.0f, 0.0f, 0.0f));
-                g_state.player->set_acceleration(glm::vec3(0.0f, 0.0f, 0.0f));
-            }
-            else{
-                glm::vec3 current_velocity = g_state.player->get_velocity();
-                float new_velocity_x = current_velocity.x * 0.9f;
-                current_velocity.x=new_velocity_x;
-                g_state.player->set_velocity(current_velocity);
-            }
-        }
+    }
+    else{
+        g_state.player->set_fuel(0.0f);
     }
 
     if (glm::length(g_state.player->get_movement()) > 1.0f)
@@ -356,12 +340,9 @@ void process_input()
         g_state.player->normalise_movement();
     }
     
-    if (win==true||lose==true){
-        timer += 1.0f;
-        if (timer > 30.0f){
-            SDL_Quit();
-            exit(1);
-        }
+    if (timer > 30.0f){
+        SDL_Quit();
+        exit(1);
     }
 }
 
@@ -386,6 +367,34 @@ void update()
     }
 
     g_accumulator = delta_time;
+    
+    if (win==true||lose==true){
+        timer += 100.0f * delta_time;
+        g_state.player->set_velocity(glm::vec3(0.0f, 0.0f, 0.0f));
+        g_state.player->set_acceleration(glm::vec3(0.0f, 0.0f, 0.0f));
+    }
+    
+    if (left){
+        glm::vec3 acceleration = g_state.player->get_acceleration();
+        float new_acceleration_x = g_state.player->get_acceleration().x -100.0f*delta_time;
+        acceleration.x = new_acceleration_x;
+        g_state.player->set_acceleration(acceleration);
+        float curr_fuel = g_state.player->get_fuel();
+        curr_fuel -= 100.0f*delta_time;
+        g_state.player->set_fuel(curr_fuel);
+        left=false;
+    }
+    
+    else if(right){
+        glm::vec3 acceleration = g_state.player->get_acceleration();
+        float new_acceleration_x = g_state.player->get_acceleration().x + 100.0f*delta_time;
+        acceleration.x = new_acceleration_x;
+        g_state.player->set_acceleration(acceleration);
+        float curr_fuel = g_state.player->get_fuel();
+        curr_fuel -= 100.0f*delta_time;
+        g_state.player->set_fuel(curr_fuel);
+        right=false;
+    }
     
     glm::vec3 new_acceleration = g_state.player->get_acceleration();
     float new_acceleration_y = g_state.player->get_acceleration().y + g_gravity.y * delta_time;
