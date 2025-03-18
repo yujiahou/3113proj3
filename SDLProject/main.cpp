@@ -356,7 +356,6 @@ void process_input()
         g_state.player->normalise_movement();
     }
     
-
     if (win==true||lose==true){
         timer += 1.0f;
         if (timer > 30.0f){
